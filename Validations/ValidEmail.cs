@@ -16,8 +16,21 @@ public class ValidEmail : ValidationAttribute
             }
 
             string regex = @"^[^@\s]+@[^@\s]+\.(com|net|org|gov|io|uz|kz|ru)$";
-            return Regex.IsMatch(email, regex, RegexOptions.IgnoreCase);
+
+            if(Regex.IsMatch(email, regex, RegexOptions.IgnoreCase) == true)
+            {
+                return true;
+            }
+            else
+            {
+                ErrorMessage = "Enter valid email, like someone@gmail.com";
+                return false;
+            }
         }
-        return base.IsValid(value);
+        else
+        {
+            ErrorMessage = "Email should be string";
+            return false;
+        }
     }
 }

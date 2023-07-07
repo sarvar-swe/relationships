@@ -32,23 +32,20 @@ public class CarsController : ControllerBase
 
         await dbContext.SaveChangesAsync();
 
-        return Ok(new GetCarDto
-        {
-            Id = savedCar.Entity.Id,
-            Brand = savedCar.Entity.Brand,
-            Model = savedCar.Entity.Model,
-            Color = savedCar.Entity.Color,
-            ManufacturedAt = savedCar.Entity.ManufacturedAt,
-            OwnerId = savedCar.Entity.OwnerId,
-            Owner = new GetUserDto
-            {
-                Id = savedCar.Entity.Owner.Id,
-                Name = savedCar.Entity.Owner.Name,
-                Username = savedCar.Entity.Owner.Username,
-                Birthday = savedCar.Entity.Owner.Birthday,
-                Email = savedCar.Entity.Owner.Email,
-                DriverLicense = null
-            }
-        });
+        return Ok(new GetCarDto(savedCar.Entity));
     }
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetCar([FromRoute] Guid id)
+    {
+        var car = await dbContext.Cars
+            .FirstOrDefaultAsync(u => u.Id == id);
+        
+        if(car is null)
+            return NotFound();
+        
+        return Ok(new GetCarDto(car));
+    }
+
+    
 }

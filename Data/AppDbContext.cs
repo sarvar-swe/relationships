@@ -5,6 +5,7 @@ public class AppDbContext : DbContext
     public DbSet<User> Users { get; set; } 
     public DbSet<DriverLicense> DriverLicenses { get; set; } 
     public DbSet<Car> Cars { get; set; }
+    public DbSet<Course> Courses { get; set; }
 
     public AppDbContext(DbContextOptions<AppDbContext> options) 
         : base(options) { }
@@ -38,6 +39,10 @@ public class AppDbContext : DbContext
             .HasPrincipalKey<User>(u => u.Id);
         
         modelBuilder.Entity<User>()
+            .HasMany(u => u.Courses)
+            .WithMany(c => c.Students);
+
+        modelBuilder.Entity<User>()
             .HasMany(u => u.Cars)
             .WithOne(c => c.Owner)
             .HasPrincipalKey(c => c.Id)
@@ -56,5 +61,18 @@ public class AppDbContext : DbContext
             .Property(e => e.Model)
             .HasMaxLength(20)
             .IsRequired();
+
+        modelBuilder.Entity<Course>()
+            .HasKey(e => e.Id);
+
+        modelBuilder.Entity<Course>()
+            .Property(e => e.Id)
+            .ValueGeneratedOnAdd(); // should learn
+        
+        modelBuilder.Entity<Course>()
+            .Property(e => e.Name)
+            .IsRequired();
+
+        
     }
 }

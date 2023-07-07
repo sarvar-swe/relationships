@@ -27,7 +27,7 @@ public class UsersController : ControllerBase
 
         await dbContext.SaveChangesAsync();
 
-        return Ok(created.Entity);
+        return Ok(created.Entity.Id);
     }
 
     [HttpGet("{id}")]
@@ -39,7 +39,7 @@ public class UsersController : ControllerBase
         if(user is null)
             return NotFound();
         
-        return Ok(user);
+        return Ok(new GetUserDto(user));
     }
 
     [HttpGet]
@@ -53,14 +53,7 @@ public class UsersController : ControllerBase
                 u.Username.ToLower().Contains(search.ToLower()));
 
         var users = await usersQuery
-            .Select(u => new GetUserDto
-            {
-                Id = u.Id,
-                Name = u.Name,
-                Username = u.Username,
-                Birthday = u.Birthday,
-                Email = u.Email,
-            })
+            .Select(u => new GetUserDto(u))
             .ToListAsync();
 
         return Ok(users);
@@ -141,12 +134,6 @@ public class UsersController : ControllerBase
         if(user is null || user.DriverLicense is null)
             return NotFound();
 
-        return Ok(new GetDriverLicenseDto
-        {
-            Id = user.DriverLicense.Id,
-            Serial = user.DriverLicense.Serial,
-            IssuedDate = user.DriverLicense.IssuedDate,
-            ExpirationDate = user.DriverLicense.ExpirationDate
-        });
+        return Ok(new GetDriverLicenseDto(user.DriverLicense));
     }
 }
