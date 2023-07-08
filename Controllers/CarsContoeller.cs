@@ -47,5 +47,56 @@ public class CarsController : ControllerBase
         return Ok(new GetCarDto(car));
     }
 
+    [HttpGet]
+    public async Task<IActionResult> GetCars([FromQuery] string search)
+    {
+        var carsQuery = dbContext.Cars.AsQueryable();
+        
+        if(false == string.IsNullOrWhiteSpace(search))
+            carsQuery = carsQuery.Where(u => 
+                u.Brand.ToLower().Contains(search.ToLower()) ||
+                u.Brand.ToLower().Contains(search.ToLower()));
+
+        var cars = await carsQuery
+            .Select(u => new GetCarDto(u))
+            .ToListAsync();
+
+        return Ok(cars);
+    }
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateCar([FromRoute] Guid Id, UpdateCarDto updateCar)
+    {
+        var car = await dbContext.Cars
+            .FirstOrDefaultAsync(u => u.Id == Id);
+        
+        if(car is null)
+            return NotFound();
+        
+        // if(await dbContext.Cars.AnyAsync(u => u.Model.ToLower() == updateCar.Model.ToLower()))
+        //     return Conflict("User with this username exists");
+
+        car.Brand = updateCar.Brand;
+        car.Model = updateCar.Model;
+        car.Color = updateCar.Color;
+        car.ManufacturedAt = updateCar.ManufacturedAt;
+        car.OwnerId = updateCar.OwnerId;
+
+        await dbContext.SaveChangesAsync();
+        return Ok(car.Id);
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteCar([FromRoute] Guid id)
+    {
+        var car = await dbContext.Cars.FirstOrDefaultAsync(u => u.Id == id);
+        if(car is null)
+            return NotFound();
+
+        dbContext.Cars.Remove(car);
+        await dbContext.SaveChangesAsync();
+
+        return Ok();
+    }
     
 }

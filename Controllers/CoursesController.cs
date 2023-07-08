@@ -41,6 +41,41 @@ public class CoursesController : ControllerBase
         return Ok(new GetCourseDto(course));
     }
 
+    [HttpGet]
+    public async  Task<IActionResult> GetCourses([FromQuery] string search)
+    {
+        var coursesQuery = dbContext.Courses.AsQueryable();
+
+        if(false == string.IsNullOrWhiteSpace(search))
+            coursesQuery = coursesQuery.Where(u => 
+                u.Name.ToLower().Contains(search.ToLower()));
+
+        var courses = await coursesQuery
+            .Select(u => new GetCourseDto(u))
+            .ToListAsync();
+
+        return Ok(courses);
+    }
+
+    [HttpPost("{id}")]
+    public async Task<IActionResult> UpdateCourse([FromRoute] int Id, UpdateCourseDto updateCourse)
+    {
+        var course = await dbContext.Courses
+            .FirstOrDefaultAsync(u => u.Id == Id);
+        
+        if(course is null)
+            return NotFound();
+        
+        course.Name = updateCourse.Name;
+        course.StartDate = updateCourse.StartDate;
+        course.DurationInMonths = updateCourse.DurationInMonths;
+        course.Price = updateCourse.Price;
+       
+        await dbContext.SaveChangesAsync();
+        return Ok(course.Id);
+    }
+
+
     [HttpPost("{id}/students")]
     public async  Task<IActionResult> AddCourseStudents([FromRoute] int id, [FromBody] AddCourseStudentsDto dto)
     {
@@ -69,5 +104,18 @@ public class CoursesController : ControllerBase
 
         return Ok(new GetCourseDto(course));
     }
-    
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteCourse([FromRoute] int id)
+    {
+        var course = await dbContext.Courses.FirstOrDefaultAsync(u => u.Id == id);
+        if(course is null)
+            return NotFound();
+
+        dbContext.Courses.Remove(course);
+        await dbContext.SaveChangesAsync();
+
+        return Ok();
+    }
+
 }
